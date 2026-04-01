@@ -1,0 +1,20 @@
+[tools]
+uv = "latest"
+
+[tasks.test]
+run = "uv run pytest"
+
+[tasks.'test:cov']
+run = "uv run pytest --cov -v"
+
+[tasks.lint]
+run = "uv run ruff check --fix ."
+
+[tasks.format]
+run = "uv run ruff format ."
+
+[tasks.typecheck]
+run = "uv run mypy ."
+
+[tasks.all]
+depends = ["format", "lint", "typecheck", "test"]
