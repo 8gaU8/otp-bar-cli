@@ -16,5 +16,9 @@ run = "uv run ruff format ."
 [tasks.typecheck]
 run = "uv run mypy ."
 
+[tasks.tox]
+description = "Run tests in multiple environments using tox"
+run = "uv run tox"
+
 [tasks.all]
-depends = ["format", "lint", "typecheck", "test"]
+depends = ["format", "lint", "typecheck", "tox" ]

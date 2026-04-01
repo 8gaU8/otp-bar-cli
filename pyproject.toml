@@ -3,7 +3,7 @@ name = "2026-03-31-otp-bar-cli"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = []
 
 [dependency-groups]
@@ -12,6 +12,7 @@ dev = [
     "pytest>=9.0.2",
     "pytest-cov>=7.1.0",
     "ruff>=0.15.8",
+    "tox-uv>=1.34.0",
 ]
 
 [tool.pytest.ini_options]
@@ -24,4 +25,14 @@ select = [
     "F",    # Pyflakes
     "I",    # isort
     "B",    # flake8-bugbear
+]
+
+[tool.tox]
+env_list = ["py311", "py312", "py313", "py314", "latest"]
+
+[tool.tox.env_run_base]
+runner = "uv-venv-lock-runner"
+with_dev = true
+commands = [
+    ["pytest"]
 ]
