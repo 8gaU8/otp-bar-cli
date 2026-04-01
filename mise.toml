@@ -21,4 +21,15 @@ description = "Run tests in multiple environments using tox"
 run = "uv run tox"
 
 [tasks.all]
-depends = ["format", "lint", "typecheck", "tox" ]
+depends = ["format", "lint", "typecheck", "tox", "test:cov"]
+
+[tasks.clean]
+description = "Clean up build artifacts and temporary files"
+run = [
+  "rm -rf .venv",
+  "rm -rf __pycache__",
+  "rm -rf .mypy_cache",
+  "rm -rf .ruff_cache",
+  "rm -rf .tox",
+  "rm -rf .coverage",
+]
