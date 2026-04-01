@@ -52,9 +52,12 @@ def test_get_token_invalid_secret() -> None:
     with pytest.raises(RuntimeError, match="oathtool failed with error:"):
         module.get_token(invalid_secret)
 
+
 def test_tomlib_import() -> None:
     # tomllibが正しくインポートされているかを確認するテスト
     try:
         import tomllib  # noqa: F401
     except ImportError:
-        pytest.fail("tomllib could not be imported, ensure Python 3.11 or later is used")
+        pytest.fail(
+            "tomllib could not be imported, ensure Python 3.11 or later is used"
+        )

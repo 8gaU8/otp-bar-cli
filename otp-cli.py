@@ -15,6 +15,7 @@ class OTPConfig:
 def parse_config(data: dict[str, Any]) -> dict[str, OTPConfig]:
     config_dict: dict[str, OTPConfig] = {}
     for user, config in data["tokens"].items():
+        user = user.strip()
         config_dict[user] = OTPConfig(**config)
     return config_dict
 
@@ -48,9 +49,7 @@ def main():
     toml_data = load_config(CONFIG_PATH)
 
     for user, data in toml_data.items():
-        user = user.strip()
         token = get_token(data.secret)
-
         print(f"{token}: {user}")
 
 
