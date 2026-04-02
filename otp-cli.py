@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --script
+#!/usr/bin/env python3
 
 
 import tomllib
@@ -61,6 +61,8 @@ def get_token(secret: str) -> str:
 
     p = Popen(["oathtool", "--totp", "-b", secret], stdout=PIPE, stderr=PIPE)
     p.wait()
+
+    # oathtoolの異常確認
     if p.returncode != 0:
         # 異常終了
         if p.stderr is not None:
@@ -72,6 +74,7 @@ def get_token(secret: str) -> str:
         # 正常終了だが出力がない場合
         raise RuntimeError("oathtool did not produce any output")
 
+    # 結果の取得
     token = p.stdout.read().decode("utf-8").strip()
     return token
 
