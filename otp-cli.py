@@ -1,39 +1,72 @@
-#! /usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+
+
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 from subprocess import PIPE, Popen
-from typing import Any
 
 
 @dataclass
 class OTPConfig:
+    """OTPの設定(アカウント、シークレット、優先度)を表すクラス"""
+
+    account: str
     secret: str
     priority: int | None = None
 
 
-def parse_config(data: dict[str, Any]) -> dict[str, OTPConfig]:
-    config_dict: dict[str, OTPConfig] = {}
-    for user, config in data["tokens"].items():
-        user = user.strip()
-        config_dict[user] = OTPConfig(**config)
-    return config_dict
+def load_config(path: Path) -> list[OTPConfig]:
+    """config.tomlを読み取りパースする
 
+    Args:
+        path (Path): config.tomlのパス
 
-def load_config(path: Path) -> dict[str, OTPConfig]:
+    Returns:
+        list[OTPConfig]: パースされたOTP設定のリスト
+    """
     with open(path, mode="rb") as toml_file:
         data = tomllib.load(toml_file)
-    return parse_config(data)
+
+    config_list: list[OTPConfig] = []
+    for account, config in data["tokens"].items():
+        account = account.strip()
+        secret = config["secret"].strip()
+        priority = config.get("priority", None)
+
+        config_list.append(
+            OTPConfig(
+                account=account,
+                secret=secret,
+                priority=priority,
+            )
+        )
+    return config_list
 
 
 def get_token(secret: str) -> str:
+    """secretからOTPを生成する。oathtoolコマンドが必要
+
+    Args:
+        secret (str): OTPのシークレットキー
+
+    Raises:
+        RuntimeError: oathoolが利用できない場合
+
+    Returns:
+        str: 生成されたOTPトークン
+    """
+
+    # oathtoolを使用してTOTPトークンを生成する
+
     p = Popen(["oathtool", "--totp", "-b", secret], stdout=PIPE, stderr=PIPE)
     p.wait()
     if p.returncode != 0:
-        # 以上終了
-        output = (
-            p.stderr.read().decode("utf-8") if p.stderr is not None else "Unknown error"
-        )
+        # 異常終了
+        if p.stderr is not None:
+            output = p.stderr.read().decode("utf-8")
+        else:
+            output = "Unknown error"
         raise RuntimeError(f"oathtool failed with error: {output}")
     if p.stdout is None:
         # 正常終了だが出力がない場合
@@ -44,13 +77,13 @@ def get_token(secret: str) -> str:
 
 
 def main():
-
+    # CONFIG_PATHは必要に応じて書き換え
     CONFIG_PATH = Path("~/.config/otp-bar/config.toml").expanduser()
-    toml_data = load_config(CONFIG_PATH)
+    config_data = load_config(CONFIG_PATH)
 
-    for user, data in toml_data.items():
+    for data in config_data:
         token = get_token(data.secret)
-        print(f"{token}: {user}")
+        print(f"{token}: {data.account}")
 
 
 if __name__ == "__main__":

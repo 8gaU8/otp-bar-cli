@@ -6,20 +6,6 @@ import pytest
 module = importlib.import_module("otp-cli")
 
 
-def test_parse_config() -> None:
-    data = {
-        "tokens": {
-            "user1": {"secret": "SECRET1", "priority": 1},
-            "user2": {"secret": "SECRET2"},
-        }
-    }
-    expected = {
-        "user1": module.OTPConfig(secret="SECRET1", priority=1),
-        "user2": module.OTPConfig(secret="SECRET2", priority=None),
-    }
-    assert module.parse_config(data) == expected
-
-
 def test_load_config(tmp_path: Path) -> None:
     config_content = """
     [tokens.user1]
@@ -31,10 +17,10 @@ def test_load_config(tmp_path: Path) -> None:
 """
     config_path = tmp_path / "config.toml"
     config_path.write_text(config_content)
-    expected = {
-        "user1": module.OTPConfig(secret="SECRET1", priority=1),
-        "user2": module.OTPConfig(secret="SECRET2", priority=None),
-    }
+    expected = [
+        module.OTPConfig(account="user1", secret="SECRET1", priority=1),
+        module.OTPConfig(account="user2", secret="SECRET2", priority=None),
+    ]
     assert module.load_config(config_path) == expected
 
 
