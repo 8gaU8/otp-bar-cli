@@ -1,7 +1,7 @@
 [project]
-name = "2026-03-31-otp-bar-cli"
+name = "otp-bar-cli"
 version = "0.1.0"
-description = "Add your description here"
+description = "A command-line tool for generating one-time passwords (OTPs)."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
