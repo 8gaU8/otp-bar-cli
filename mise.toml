@@ -35,3 +35,8 @@ run = [
   "rm -rf .coverage",
   "rm -rf .pytest_cache",
 ]
+
+
+[tasks.install]
+description = "Install script"
+run = ["cp otp-cli.py ~/.local/bin/otp-cli", "chmod +x ~/.local/bin/otp-cli"]

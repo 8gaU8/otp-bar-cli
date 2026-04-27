@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 
+import argparse
+import sys
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
@@ -78,15 +80,85 @@ def get_token(secret: str) -> str:
     token = p.stdout.read().decode("utf-8").strip()
     return token
 
+def stderr(message: str) -> None:
+    print(message, file=sys.stderr)
 
-def main():
-    # CONFIG_PATHは必要に応じて書き換え
-    CONFIG_PATH = Path("~/.config/otp-bar/config.toml").expanduser()
-    config_data = load_config(CONFIG_PATH)
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="OTP CLI Tool")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=Path("~/.config/otp-bar/config.toml").expanduser(),
+        help="Path to the config.toml file (default: ~/.config/otp-bar/config.toml)",
+    )
+    parser.add_argument(
+        "--account",
+        "-a",
+        type=str,
+        help="Filter by account name (optional)",
+    )
+    parser.add_argument(
+        "--clipboard",
+        "-c",
+        action="store_true",
+        default=False,
+        help="Copy the generated OTP to the clipboard (optional)",
+    )
 
+    return parser.parse_args()
+
+
+def show_all(config_data: list[OTPConfig]) -> None:
+    """全てのOTPトークンを表示する
+
+    Args:
+        config_data (list[OTPConfig]): OTP設定のリスト
+    """
     for data in config_data:
         token = get_token(data.secret)
         print(f"{token}: {data.account}")
+
+
+def filter_data(config_data: list[OTPConfig], account: str) -> list[OTPConfig]:
+    """指定されたアカウントのOTPトークンを表示する
+
+    Args:
+        config_data (list[OTPConfig]): OTP設定のリスト
+        account (str): フィルタリングするアカウント名
+    """
+    accounts = []
+    for data in config_data:
+        if account.lower() in data.account.lower():
+            accounts.append(data)
+    return accounts
+
+
+def copy_to_clipboard(token: str) -> None:
+    """OTPトークンをクリップボードにコピーする
+
+    Args:
+        token (str): コピーするOTPトークン
+    """
+    p = Popen(["pbcopy"], stdin=PIPE)
+    p.communicate(input=token.encode("utf-8"))
+
+
+def main() -> None:
+    args = parse_args()
+    # CONFIG_PATHは必要に応じて書き換え
+    config_data = load_config(args.config)
+    # filter by account if specified
+    if args.account:
+        config_data = filter_data(config_data, args.account)
+    if not config_data:
+        stderr("No matching accounts found.")
+        return
+
+    if args.clipboard:
+        account = config_data[0]
+        token = get_token(account.secret)
+        copy_to_clipboard(token)
+    show_all(config_data)
 
 
 if __name__ == "__main__":
